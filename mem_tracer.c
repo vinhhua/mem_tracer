@@ -119,7 +119,7 @@ void* REALLOC(void* p,int t,char* file,int line)
 {
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment reallocated to address %p to a new size %d\n", PATH, file, line, p, t);
+    //printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment reallocated to address %p to a new size %d\n", PATH, file, line, p, t);
     p = realloc(p,t);
     return p;
 }
@@ -136,7 +136,7 @@ void* MALLOC(int t,char* file,int line)
     p = malloc(t);
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment allocated to address %p to a new size %d\n", PATH, file, line, p, t);
+    //printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment allocated to address %p to a new size %d\n", PATH, file, line, p, t);
     return p;
 }
 
@@ -151,7 +151,7 @@ void FREE(void* p,char* file,int line)
     free(p);
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment allocated to address %p\n", PATH, file, line, p);
+    //printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment allocated to address %p\n", PATH, file, line, p);
 }
 
 #define realloc(a,b) REALLOC(a,b,__FILE__,__LINE__)
@@ -221,7 +221,7 @@ void make_extend_array()
 // function main
 
 #define STR_SIZE 20
-#define SIZE 20
+#define SIZE 10
 static int ROW_SIZE = 20;
 int main(int argc, char **argv) {
     // error-handling, if more than 2 arguments then print the error message.
@@ -250,29 +250,39 @@ int main(int argc, char **argv) {
 	    strcpy(string[i], input);
 	}
     } 
-
+    
+    //free(input);
     // Create the head of the Linked list.
-    int node_index = 0;
-    CommandNode *commands_list[count_lines];
-    CommandNode *head = commands_list[0];
-    head = (CommandNode *)malloc(sizeof(CommandNode));
-    CreateCommandNode(head, string[i], node_index, count_lines, NULL);
+    int index = 0;
+    CommandNode *commands_list[count_lines]; // supposedly 6 atm
+    commands_list[index] = (CommandNode *)malloc(sizeof(CommandNode));    // memory allocated for first index
+    CreateCommandNode(commands_list[index], string[index], 0, NULL);  // Create the node with head as thisnode, string[node_index] which is string[0], node_index of first index, count_lines as 5, and NULL.
+     
+    // Store each command into a linked list node.
+    // *ERROR*
+    for (i = 0; i < count_lines; i++) {	
+	commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
+	CreateCommandNode(commands_list[index], string[i], index, NULL); // look at string index
+	InsertCommandAfter(commands_list[index - 1], commands_list[index]);
+    } 
+    /*
+    printf("string a = \"%s\"\n", string[0]);
 
     for (i=0; i < count_lines; i++) {
-	commands_list[++node_index] = (CommandNode *)malloc(sizeof(CommandNode));
-	CreateCommandNode(commands_list[node_index], string[i], node_index, count_lines, NULL);
-	InsertCommandAfter(commands_list[node_index - 1], commands_list[node_index]);	
-    } 
+	//printf("The command is %d\n", commands_list[i]->index);
+	printf("array[%d] = %s\n", i, string[i]);
+    } */
+    
+    CommandNode *tmp = commands_list[1];
+    while (tmp != NULL) {
+	printf("Command is %s\n", tmp->command);
+	tmp = GetNextCommand(tmp);
+    }
+    //PUSH_TRACE("main");
+    //make_extend_array();
 
-    PUSH_TRACE("main");
-    make_extend_array();
-
-    POP_TRACE();
+    //POP_TRACE();
+    
     return(0);
 }// end main
-
-
-
-
-
 
