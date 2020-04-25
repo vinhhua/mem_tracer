@@ -9,11 +9,9 @@ typedef struct command_struct {
    char command[20][20];
    int index;
    int PID;
-   int starttime;
    struct command_struct* nextCommandPtr;
 } CommandNode;
-void CreateCommandNode(CommandNode* thisNode, char cmd[20][20], int ind, 
-CommandNode* nextCmd);
+void CreateCommandNode(CommandNode* thisNode, char *cmd, int ind, int count_lines, CommandNode* nextCmd);
 void InsertCommandAfter(CommandNode* thisNode, CommandNode* newNode);
 CommandNode* GetNextCommand(CommandNode* thisNode);
 CommandNode* FindCommand(CommandNode* cmd, int pid);

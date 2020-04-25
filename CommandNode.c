@@ -23,11 +23,10 @@
 //create a new command node. usually nextCmd can be NULL and function 
 //InsertCommandAfter can be called to insert after head node.
 
-void CreateCommandNode(CommandNode* thisNode, char cmd[20][20], int ind, CommandNode* nextCmd) {
+void CreateCommandNode(CommandNode* thisNode, char *cmd, int ind, int count_lines, CommandNode* nextCmd) {
    //this is useful if you store a string (char *): strcpy(thisNode->command, cmd);
-   for (int i = 0; i < 20; i++)
-      for (int j = 0; j < 20; j++)
-         thisNode->command[i][j] = cmd[i][j];
+   for (int i=0; i < count_lines; i++)
+	strcpy(thisNode->command[i], cmd);
    thisNode->index = ind;
    thisNode->nextCommandPtr = nextCmd;
    return;
