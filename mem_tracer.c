@@ -120,10 +120,12 @@ void* REALLOC(void* p,int t,char* file,int line)
 {
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
+    PUSH_TRACE("realloc");
     char *test;
     test = PRINT_TRACE();
     printf("file=\"%s/%s\",line=%d,function=\"%s\",segment reallocated to address %p to a new size %d\n", PATH, file, line, test, p, t);
     p = realloc(p,t);
+    POP_TRACE();
     return p;
 }
 
@@ -135,12 +137,14 @@ void* REALLOC(void* p,int t,char* file,int line)
 // Information about the function F should be printed by printing the stack (use PRINT_TRACE)
 void* MALLOC(int t,char* file,int line)
 {
+    PUSH_TRACE("malloc");
     void* p;
     p = malloc(t);
     char *test = PRINT_TRACE();
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
     printf("file=\"%s/%s\",line=%d,function=\"%s\",segment allocated to address %p to size %d\n", PATH, file, line, test, p, t);
+    POP_TRACE();
     return p;
 }
 
@@ -151,12 +155,14 @@ void* MALLOC(int t,char* file,int line)
 // "File tracemem.c, line X, function F deallocated the memory segment at address A"
 // Information about the function F should be printed by printing the stack (use PRINT_TRACE)
 void FREE(void* p,char* file,int line)
-{
+{  
+    PUSH_TRACE("free");
     free(p);
     char *test = PRINT_TRACE();
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
     printf("file=\"%s/%s\",line=%d,function=\"%s\",segment deallocated at the address %p\n", PATH, file, line, test, p);
+    POP_TRACE();
 }
 
 #define realloc(a,b) REALLOC(a,b,__FILE__,__LINE__)
@@ -268,9 +274,6 @@ int main(int argc, char **argv) {
         
     }
 
-
-
-    //free(input);
     // Create the head of the Linked list.
     int index = 0;
     CommandNode *commands_list[count_lines]; // supposedly 6 atm
@@ -286,13 +289,17 @@ int main(int argc, char **argv) {
     }
 
     PRINT_NODE(head);
+    
+    // free all the pointers
+    for (i=0; i < count_lines - 1; i++) {
+	free((void *)newString[i]);
+    }
+    free((void *)newString);
 
-    //make_extend_array();
-    PRINT_TRACE();
-    POP_TRACE();
-    free(newString);
-    close(output);
-    return(0);
+    PRINT_TRACE();  // print all the commands stored in linekd list
+    close(output);  // close the output file descriptor
+    POP_TRACE();    // pop everything off the stack.
+    return 0;
 }// end main
 
 // Function to print all the Linked list nodes recursively.
@@ -303,6 +310,7 @@ void PRINT_NODE(CommandNode *head) {
     
     PRINT_NODE(GetNextCommand(head));
     printf("Node index: %d, function ID: %s\n", head->index, head->command);
+    POP_TRACE();
 }
 
 // Extend the rows of the array.
@@ -310,17 +318,11 @@ void extend_row_array(char **array, int rows, int columns) {
     PUSH_TRACE("extend_row_array");
     int new_size = rows * 2;
     size_t i;
-    //char **tmp = realloc(array, sizeof(char*) * (rows + (new_size)));
-    /*
-    if (tmp) {
-	array = tmp;
-	for (i=0; i < new_size; i++) {
-	    array[rows + i] = malloc(sizeof(char *)[rows + i] * columns);
-	}
-    } */
+    
     for (i=0; i < rows; i++) {
         array[i]  = realloc(array[i], sizeof(char*) * new_size);
     }
+    POP_TRACE();
 }
 
 
