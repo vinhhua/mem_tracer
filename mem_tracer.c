@@ -1,16 +1,17 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
 #include "CommandNode.h"
-
+#include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
 /*TO DO:
   store commands into array - DONE
-  store those commands inside array into Linked List
-  put those node into the stack
+  store those commands inside array into Linked List - DONE
+  put those node into the stack - DONE, should push function's name into stack instead of command's node.
+  PRINT TRACE, WRITE INTO FILES, RE SIZE ARRAY - figuring out how to write out to file effectively.
   more to come  */
 
 // TRACE_NODE_STRUCT is a linked list of
@@ -119,7 +120,9 @@ void* REALLOC(void* p,int t,char* file,int line)
 {
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    //printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment reallocated to address %p to a new size %d\n", PATH, file, line, p, t);
+    char *test;
+    test = PRINT_TRACE();
+    printf("file=\"%s/%s\",line=%d,function=\"%s\",segment reallocated to address %p to a new size %d\n", PATH, file, line, test, p, t);
     p = realloc(p,t);
     return p;
 }
@@ -134,9 +137,10 @@ void* MALLOC(int t,char* file,int line)
 {
     void* p;
     p = malloc(t);
+    char *test = PRINT_TRACE();	
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    //printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment allocated to address %p to a new size %d\n", PATH, file, line, p, t);
+    printf("file=\"%s/%s\",line=%d,function=\"%s\",segment allocated to address %p to size %d\n", PATH, file, line, test, p, t);
     return p;
 }
 
@@ -149,9 +153,10 @@ void* MALLOC(int t,char* file,int line)
 void FREE(void* p,char* file,int line)
 {
     free(p);
+    char *test = PRINT_TRACE();	
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    //printf("file=\"%s/%s\",line=%d,function=\"un_known\",segment allocated to address %p\n", PATH, file, line, p);
+    printf("file=\"%s/%s\",line=%d,function=\"%s\",segment deallocated at the address %p\n", PATH, file, line, test, p);
 }
 
 #define realloc(a,b) REALLOC(a,b,__FILE__,__LINE__)
@@ -180,8 +185,7 @@ void add_column(int** array,int rows,int columns)
 // function make_extend_array
 // Example of how the memory trace is done
 // This function is intended to demonstrate how memory usage tracing of malloc and free is done
-void make_extend_array()
-{
+void make_extend_array() {
     PUSH_TRACE("make_extend_array");
     int i, j;
     int **array;
@@ -216,19 +220,21 @@ void make_extend_array()
     return;
 }//end make_extend_array
 
-
+void PRINT_NODE(CommandNode *head);
+void extend_row_array(char **array, int rows, int new_size);
+bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE);
 // ----------------------------------------------
 // function main
 
 #define STR_SIZE 20
-#define SIZE 10
-static int ROW_SIZE = 20;
 int main(int argc, char **argv) {
     // error-handling, if more than 2 arguments then print the error message.
     if (argc == 1 || argc > 2) {
 	fprintf(stderr, "usage: %s <file_name>\n", argv[0]);
 	exit(1);
     }
+
+    PUSH_TRACE("main");
     
     // validate the file pointer and error-handling, if file pointer points to nothing then file does not exist.
     FILE *fp;
@@ -237,52 +243,89 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Error: %s does not exist.\n", argv[1]);
         exit(1);
     }
-    
+    FILE *output;    
+    int ROW_SIZE = 10;
     // This code block handles the file and store each line into ** string.
-    char **string = (char **)malloc(sizeof(char *) * ROW_SIZE);
+    char **newString = (char **)malloc(sizeof(char *) * ROW_SIZE);
     char input[20];
     int count_lines = 0;
+    int array_size = 0;
     int i;
     for (i=0; i < ROW_SIZE; i++) {
-	string[i] = (char *)malloc(sizeof(char *) * STR_SIZE);
+	newString[i] = (char *)malloc(sizeof(char) * STR_SIZE);
 	if (fgets(input, STR_SIZE, fp) != NULL) {
 	    count_lines += 1;
-	    strcpy(string[i], input);
+	    // HUGE RED FLAG!!!
+	    if (array_is_full(newString[i], array_size, ROW_SIZE)) { 
+                extend_row_array(newString, ROW_SIZE, ROW_SIZE * 2);
+		ROW_SIZE *= 2; 
+       	    }   
+	    strcpy(newString[i], input);
+	    array_size += 1;
 	}
     } 
+
+    output = open
     
     //free(input);
     // Create the head of the Linked list.
     int index = 0;
     CommandNode *commands_list[count_lines]; // supposedly 6 atm
     commands_list[index] = (CommandNode *)malloc(sizeof(CommandNode));    // memory allocated for first index
-    CreateCommandNode(commands_list[index], string[index], 0, NULL);  // Create the node with head as thisnode, string[node_index] which is string[0], node_index of first index, count_lines as 5, and NULL.
-     
+    CreateCommandNode(commands_list[index], newString[index], 0, NULL);  // Create the node with head as thisnode, cmd[node_index] which is cmd[0], node_index of first index, count_lines as 5, and NULL.
+    CommandNode *head = commands_list[0]; 
+    
     // Store each command into a linked list node.
-    // *ERROR*
-    for (i = 0; i < count_lines; i++) {	
+    for (i = 0; i < count_lines - 1; i++) {	
 	commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
-	CreateCommandNode(commands_list[index], string[i], index, NULL); // look at string index
+	CreateCommandNode(commands_list[index], newString[index], index, NULL);     
 	InsertCommandAfter(commands_list[index - 1], commands_list[index]);
     } 
-    /*
-    printf("string a = \"%s\"\n", string[0]);
+ 
+    PRINT_NODE(head);
 
-    for (i=0; i < count_lines; i++) {
-	//printf("The command is %d\n", commands_list[i]->index);
-	printf("array[%d] = %s\n", i, string[i]);
-    } */
-    
-    CommandNode *tmp = commands_list[1];
-    while (tmp != NULL) {
-	printf("Command is %s\n", tmp->command);
-	tmp = GetNextCommand(tmp);
-    }
-    //PUSH_TRACE("main");
     //make_extend_array();
-
-    //POP_TRACE();
-    
+    PRINT_TRACE();
+    POP_TRACE();
+    free(newString); 
     return(0);
 }// end main
+
+void PRINT_NODE(CommandNode *head) {
+    PUSH_TRACE("print_node");
+    CommandNode *temp = head;
+    while (temp != NULL) {
+	printf("Node index: %d, function ID: %s\n", temp->index, temp->command);
+	temp = GetNextCommand(temp);
+    }
+}
+
+// Extend the rows of the array.
+void extend_row_array(char **array, int rows, int columns) {
+    PUSH_TRACE("extend_row_array");
+    int new_size = rows * 2;
+    size_t i;
+    //char **tmp = realloc(array, sizeof(char*) * (rows + (new_size)));
+    /*
+    if (tmp) {
+	array = tmp;
+	for (i=0; i < new_size; i++) {
+	    array[rows + i] = malloc(sizeof(char *)[rows + i] * columns);
+	}
+    } */
+    for (i=0; i < rows; i++) {
+	array[i]  = realloc(array[i], sizeof(char*) * new_size);
+    }
+}
+
+// Check the array to see whether if its full.
+bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE) {
+    PUSH_TRACE("array_is_full");
+    size_t n = array_size;
+    if (n > INITIAL_ROW_SIZE) 
+	return true;
+
+    return false;
+}
+
 
