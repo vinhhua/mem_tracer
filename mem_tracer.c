@@ -8,10 +8,10 @@
 #include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
 /*TO DO TMR: 4/26
-	FIX THE EXTEND ARRAY/ EXTEND ROW ARRAY - ON IT
-	FREE POINTERS WHEN NOT USED
-	FIX ALL THE BUGS
-	WORK ON JAZZ ASSIGNMENTS
+	FIX THE EXTEND ARRAY/ EXTEND ROW ARRAY - DONEZO
+	FREE POINTERS WHEN NOT USED - DONEZO
+	FIX ALL THE BUGS  - YES, MAYBE, IDK
+	WORK ON JAZZ ASSIGNMENTS 
 	CRY
 */
 // TRACE_NODE_STRUCT is a linked list of
@@ -289,11 +289,20 @@ int main(int argc, char **argv) {
     // print all the commands from linked list.
     PRINT_NODE(head);
     
+    // free all the nodes from Linked list
+    CommandNode *current = head;
+    while (current != NULL) {
+	free(current);
+	current = GetNextCommand(current);
+    }
+    head = NULL;
+
     // free all the pointers
     for (i=0; i < count_lines; i++)
 	free((void *)newString[i]);
     free((void *)newString);
 
+    // free all the commands from LL
 
     close(output);  // close the output file descriptor
     POP_TRACE();    // pop everything off the stack.
@@ -311,4 +320,5 @@ void PRINT_NODE(CommandNode *head) {
     printf("Node index: %d, function ID: %s\n", head->index, head->command);
     POP_TRACE();
 }
+
 
