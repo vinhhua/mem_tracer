@@ -252,10 +252,16 @@ int main(int argc, char **argv) {
     int count_lines = 0;
     int array_size = 0;
     int i;
+    char chr = getc(fp);
+    while (chr != EOF) {
+	if (chr == 'n') 
+	    count_lines += 1;
+  	chr = getc(fp);
+
     for (i=0; i < ROW_SIZE; i++) {
 	newString[i] = (char *)malloc(sizeof(char) * STR_SIZE);
 	if (fgets(input, STR_SIZE, fp) != NULL) {
-	    count_lines += 1;
+	    //count_lines += 1;
 	    // HUGE RED FLAG!!!
 	    if (array_is_full(newString[i], array_size, ROW_SIZE)) { 
                 extend_row_array(newString, ROW_SIZE, ROW_SIZE * 2);
@@ -299,25 +305,26 @@ void PRINT_NODE(CommandNode *head) {
 	temp = GetNextCommand(temp);
     }
 }
-
+/*
 // Extend the rows of the array.
 void extend_row_array(char **array, int rows, int columns) {
     PUSH_TRACE("extend_row_array");
     int new_size = rows * 2;
     size_t i;
     //char **tmp = realloc(array, sizeof(char*) * (rows + (new_size)));
-    /*
-    if (tmp) {
+    
+    CMT  if (tmp) {
 	array = tmp;
 	for (i=0; i < new_size; i++) {
 	    array[rows + i] = malloc(sizeof(char *)[rows + i] * columns);
 	}
-    } */
+    } 
     for (i=0; i < rows; i++) {
 	array[i]  = realloc(array[i], sizeof(char*) * new_size);
     }
-}
+}*/
 
+/*
 // Check the array to see whether if its full.
 bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE) {
     PUSH_TRACE("array_is_full");
@@ -326,6 +333,6 @@ bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE) {
 	return true;
 
     return false;
-}
+} */
 
 
