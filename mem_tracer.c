@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -23,7 +22,7 @@ struct TRACE_NODE_STRUCT {
 };
 typedef struct TRACE_NODE_STRUCT TRACE_NODE;
 static TRACE_NODE* TRACE_TOP = NULL;       // ptr to the top of the stack
-
+static FILE* output;
 
 /* --------------------------------*/
 /* function PUSH_TRACE */
@@ -122,7 +121,8 @@ void* REALLOC(void* p,int t,char* file,int line)
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
     char *test;
     test = PRINT_TRACE();
-    printf("file=\"%s/%s\",line=%d,function=\"%s\",segment reallocated to address %p to a new size %d\n", PATH, file, line, test, p, t);
+    output = fopen("memtrace.out", "a");
+    fprintf(output, "file=\"%s/%s\",line=%d,function=\"%s\",segment reallocated to address %p to a new size %d\n", PATH, file, line, test, p, t);
     p = realloc(p,t);
     return p;
 }
@@ -140,7 +140,8 @@ void* MALLOC(int t,char* file,int line)
     char *test = PRINT_TRACE();	
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    printf("file=\"%s/%s\",line=%d,function=\"%s\",segment allocated to address %p to size %d\n", PATH, file, line, test, p, t);
+    output = fopen("memtrace.out", "a");
+    fprintf(output, "file=\"%s/%s\",line=%d,function=\"%s\",segment allocated to address %p to size %d\n", PATH, file, line, test, p, t);
     return p;
 }
 
@@ -156,7 +157,8 @@ void FREE(void* p,char* file,int line)
     char *test = PRINT_TRACE();	
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
-    printf("file=\"%s/%s\",line=%d,function=\"%s\",segment deallocated at the address %p\n", PATH, file, line, test, p);
+    output = fopen("memtrace.out", "a");
+    fprintf(output, "file=\"%s/%s\",line=%d,function=\"%s\",segment deallocated at the address %p\n", PATH, file, line, test, p);
 }
 
 #define realloc(a,b) REALLOC(a,b,__FILE__,__LINE__)
@@ -243,7 +245,6 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Error: %s does not exist.\n", argv[1]);
         exit(1);
     }
-    FILE *output;    
     int ROW_SIZE = 10;
     // This code block handles the file and store each line into ** string.
     char **newString = (char **)malloc(sizeof(char *) * ROW_SIZE);
@@ -265,8 +266,6 @@ int main(int argc, char **argv) {
 	}
     } 
 
-    output = open
-    
     //free(input);
     // Create the head of the Linked list.
     int index = 0;
@@ -283,19 +282,20 @@ int main(int argc, char **argv) {
     } 
  
     PRINT_NODE(head);
-
-    //make_extend_array();
     PRINT_TRACE();
-    POP_TRACE();
     free(newString); 
+    POP_TRACE();
     return(0);
 }// end main
 
+// Print all the command nodes in the linked list.
 void PRINT_NODE(CommandNode *head) {
     PUSH_TRACE("print_node");
     CommandNode *temp = head;
+    output = fopen("memtrace.out", "a");
     while (temp != NULL) {
 	printf("Node index: %d, function ID: %s\n", temp->index, temp->command);
+	fprintf(output, "Node index: %d, function ID: %s\n", temp->index, temp->command);
 	temp = GetNextCommand(temp);
     }
 }
