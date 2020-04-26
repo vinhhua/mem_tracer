@@ -226,12 +226,11 @@ void make_extend_array() {
     return;
 }//end make_extend_array
 
-void PRINT_NODE(CommandNode *head);
-void extend_row_array(char **array, int rows);
 // ----------------------------------------------
 // function main
-
+void PRINT_NODE(CommandNode *head);
 #define STR_SIZE 20
+
 int main(int argc, char **argv) {
     // error-handling, if more than 2 arguments then print the error message.
     if (argc == 1 || argc > 2) {
@@ -259,20 +258,18 @@ int main(int argc, char **argv) {
     char **newString = (char **)malloc(sizeof(char *) * ROW_SIZE);
     char input[20];
     int count_lines = 0;
-    int array_size = 0;
     int i;
     for (i=0; i < ROW_SIZE; i++) {
         newString[i] = (char *)malloc(sizeof(char) * STR_SIZE);
         if (fgets(input, STR_SIZE, fp) != NULL) 
             count_lines += 1;
        
-	if (count_lines == ROW_SIZE) {   // row is full, needs to resize the row of array.
-	    newString = (char **)realloc(newString, sizeof(char *) * (ROW_SIZE * 2));
-	    ROW_SIZE *= 2;
+	if (count_lines == ROW_SIZE) {   			// row is full, needs to resize the row of array.
+	    newString = (char **)realloc(newString, sizeof(char *) * (ROW_SIZE * 2)); // double the size of array's row
+	    ROW_SIZE *= 2;                       			   	      // update the ROW_SIZE
 	}
    
         strcpy(newString[i], input);
-        array_size += 1;
     }
 
     // Create the head of the Linked list.
@@ -293,16 +290,16 @@ int main(int argc, char **argv) {
     PRINT_NODE(head);
     
     // free all the pointers
-    for (i=0; i < count_lines; i++) {
+    for (i=0; i < count_lines; i++)
 	free((void *)newString[i]);
-    }
     free((void *)newString);
 
-    PRINT_TRACE();  // print all the commands stored in linekd list
+
     close(output);  // close the output file descriptor
     POP_TRACE();    // pop everything off the stack.
+    PRINT_TRACE();  // print all the commands stored in linekd list
     return 0;
-}// end main
+}
 
 // Function to print all the Linked list nodes recursively.
 void PRINT_NODE(CommandNode *head) {
@@ -314,13 +311,4 @@ void PRINT_NODE(CommandNode *head) {
     printf("Node index: %d, function ID: %s\n", head->index, head->command);
     POP_TRACE();
 }
-
-
-// Extend the rows of the array.
-/*
-void extend_row_array(char **array, int rows) {
-    PUSH_TRACE("extend_row_array");
-    array = (char **)realloc(array, sizeof(char *) * (rows * 2));
-}*/
-
 
