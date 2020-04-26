@@ -7,12 +7,12 @@
 #include "CommandNode.h"
 #include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
-/*TO DO:
-store commands into array - DONE
-        store those commands inside array into Linked List - DONE
-        put those node into the stack - DONE, should push function's name into stack instead of command's node.
-PRINT TRACE, WRITE INTO FILES, RE SIZE ARRAY - figuring out how to write out to file effectively.
-more to come
+/*TO DO TMR: 4/26
+	FIX THE EXTEND ARRAY/ EXTEND ROW ARRAY
+	FREE POINTERS WHEN NOT USED
+	FIX ALL THE BUGS
+	WORK ON JAZZ ASSIGNMENTS
+	CRY
 */
 // TRACE_NODE_STRUCT is a linked list of
 // pointers to function identifiers
