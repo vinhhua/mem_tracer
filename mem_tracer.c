@@ -26,10 +26,7 @@ static TRACE_NODE* TRACE_TOP = NULL;       // ptr to the top of the stack
 
 
 FILE* fp;
-<<<<<<< Updated upstream
-=======
 int ind;
->>>>>>> Stashed changes
 //static int output;              //file output "memtrace"
 
 /* --------------------------------*/
@@ -174,22 +171,12 @@ void FREE(void* p,char* file,int line)
 // -----------------------------------------
 // function add_command will add an extra command to a char**.
 // This function is intended to demonstrate how memory usage tracing of realloc is done
-<<<<<<< Updated upstream
-void add_command(char*** array, int ind)
-{
-    PUSH_TRACE("add_command");
-
-    //*array = realloc(*array, sizeof(char*) * (STR_SIZE + ind));
-    *array = realloc(*array, sizeof(char*) * (ind+1));
-    //20 + 20 / 20 + 40 / 20 + 60
-=======
 void add_command(char*** array, int currentSize)
 {
     PUSH_TRACE("add_command");
 
     *array = realloc(*array, sizeof(char*) * currentSize);
     //*array = realloc(*array, sizeof(char*) * (ind+1));  //reallocate memory
->>>>>>> Stashed changes
     POP_TRACE();    //pop
     return;
 }// end add_column
@@ -206,30 +193,6 @@ void make_extend_array() {
     char input[STR_SIZE];     //array input
     int index = 0;       //memory array index init. to 0
 
-<<<<<<< Updated upstream
-    //memory allocate size for memory array - must free
-    array = (char**)malloc(sizeof(char*));  //allocate space for 20 commands
-
-    //till end of file
-    while(!feof(fp)) {
-        if (fgets(input, STR_SIZE, fp) != NULL) {    //read input
-            array[index] = (char*)malloc(sizeof(char) * STR_SIZE); //allocate memory per index
-
-            strcpy(array[index], input);    //copy
-            printf("%d\n", index);
-            printf("%s\n", array[index]);
-
-            index++;
-
-            //expand array if size meets parameters
-            //if(index % STR_SIZE == 0 && index != 0)
-            add_command(&array, index);
-        }
-        else
-            break;
-
-    }
-=======
     int totalSize = 0;      //accumulation of memory
     int currentSize = 10;   //default 10
 
@@ -261,10 +224,7 @@ void make_extend_array() {
     }
 
     //*&ind = index;      //assign global ind var to hold index value
->>>>>>> Stashed changes
 
-
-    printf("%d\n", index);
     //now deallocate it
     for(int i = 0; i < index; i++)
         free((void*)array[i]);      //free array indexes
@@ -339,7 +299,3 @@ void PRINT_NODES(CommandNode *head) {
         temp = GetNextCommand(temp);
     }
 }
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
