@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
 /*TO DO TMR: 4/26
-	FIX THE EXTEND ARRAY/ EXTEND ROW ARRAY
+	FIX THE EXTEND ARRAY/ EXTEND ROW ARRAY - ON IT
 	FREE POINTERS WHEN NOT USED
 	FIX ALL THE BUGS
 	WORK ON JAZZ ASSIGNMENTS
@@ -222,7 +222,6 @@ void make_extend_array() {
 
 void PRINT_NODE(CommandNode *head);
 void extend_row_array(char **array, int rows, int new_size);
-bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE);
 // ----------------------------------------------
 // function main
 
@@ -258,16 +257,15 @@ int main(int argc, char **argv) {
     int i;
     for (i=0; i < ROW_SIZE; i++) {
         newString[i] = (char *)malloc(sizeof(char) * STR_SIZE);
-        if (fgets(input, STR_SIZE, fp) != NULL) {
+        if (fgets(input, STR_SIZE, fp) != NULL) 
             count_lines += 1;
-            // HUGE RED FLAG!!!
-            if (array_is_full(newString[i], array_size, ROW_SIZE)) {
-                extend_row_array(newString, ROW_SIZE, ROW_SIZE * 2);
-                ROW_SIZE *= 2;
-            }
-            strcpy(newString[i], input);
-            array_size += 1;
-        }
+       
+	if (count_lines == ROW_SIZE)   // row is full, needs to resize the row of array.
+	    extend_row_array(newString, ROW_SIZE, ROW_SIZE * 2);
+	    
+        strcpy(newString[i], input);
+        array_size += 1;
+        
     }
 
 
@@ -297,13 +295,14 @@ int main(int argc, char **argv) {
     return(0);
 }// end main
 
+// Function to print all the Linked list nodes recursively.
 void PRINT_NODE(CommandNode *head) {
     PUSH_TRACE("print_node");
-    CommandNode *temp = head;
-    while (temp != NULL) {
-        printf("Node index: %d, function ID: %s\n", temp->index, temp->command);
-        temp = GetNextCommand(temp);
-    }
+    if (head == NULL)
+	return;
+    
+    PRINT_NODE(GetNextCommand(head));
+    printf("Node index: %d, function ID: %s\n", head->index, head->command);
 }
 
 // Extend the rows of the array.
@@ -323,16 +322,5 @@ void extend_row_array(char **array, int rows, int columns) {
         array[i]  = realloc(array[i], sizeof(char*) * new_size);
     }
 }
-
-// Check the array to see whether if its full.
-bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE) {
-    PUSH_TRACE("array_is_full");
-    size_t n = array_size;
-    if (n > INITIAL_ROW_SIZE)
-        return true;
-
-    return false;
-}
-
 
 
