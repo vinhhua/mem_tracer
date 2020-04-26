@@ -7,13 +7,13 @@
 #include "CommandNode.h"
 #include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
-//*TO DO:
-store commands into array - DONE
-        store those commands inside array into Linked List - DONE
-        put those node into the stack - DONE, should push function's name into stack instead of command's node.
-PRINT TRACE, WRITE INTO FILES, RE SIZE ARRAY - figuring out how to write out to file effectively.
-more to come
-*/
+/*TO DO:
+  store commands into array - DONE
+  store those commands inside array into Linked List - DONE
+  put those node into the stack - DONE, should push function's name into stack instead of command's node.
+  PRINT TRACE, WRITE INTO FILES, RE SIZE ARRAY - figuring out how to write out to file effectively.
+  more to come  */
+
 // TRACE_NODE_STRUCT is a linked list of
 // pointers to function identifiers
 // TRACE_TOP is the head of the list is the top of the stack
@@ -23,7 +23,10 @@ struct TRACE_NODE_STRUCT {
 };
 typedef struct TRACE_NODE_STRUCT TRACE_NODE;
 static TRACE_NODE* TRACE_TOP = NULL;       // ptr to the top of the stack
-static int output;              //file output "memtrace"
+
+
+FILE* fp;
+//static int output;              //file output "memtrace"
 
 /* --------------------------------*/
 /* function PUSH_TRACE */
@@ -165,18 +168,16 @@ void FREE(void* p,char* file,int line)
 
 
 // -----------------------------------------
-// function add_column will add an extra column to a 2d array of ints.
+// function add_command will add an extra command to a char**.
 // This function is intended to demonstrate how memory usage tracing of realloc is done
-void add_column(int** array,int rows,int columns)
+void add_command(char*** array, int ind)
 {
-    PUSH_TRACE("add_column");
-    int i;
+    PUSH_TRACE("add_command");
 
-    for(i=0; i<rows; i++) {
-        array[i]=(int*) realloc(array[i],sizeof(int)*(columns+1));
-        array[i][columns]=10*i+columns;
-    }
-    POP_TRACE();
+    //*array = realloc(*array, sizeof(char*) * (STR_SIZE + ind));
+    *array = realloc(*array, sizeof(char*) * (ind+1));
+    //20 + 20 / 20 + 40 / 20 + 60
+    POP_TRACE();    //pop
     return;
 }// end add_column
 
@@ -186,47 +187,50 @@ void add_column(int** array,int rows,int columns)
 // Example of how the memory trace is done
 // This function is intended to demonstrate how memory usage tracing of malloc and free is done
 void make_extend_array() {
-    PUSH_TRACE("make_extend_array");
-    int i, j;
-    int **array;
+    PUSH_TRACE("make_extend_array");    //push trace
 
-    //make array
-    array = (int**) malloc(sizeof(int*)*4);  // 4 rows
-    for(i=0; i<4; i++) {
-        array[i]=(int*) malloc(sizeof(int)*3);  // 3 columns
-        for(j=0; j<3; j++)
-            array[i][j]=10*i+j;
+    char **array;       //memory array
+    char input[STR_SIZE];     //array input
+    int index = 0;       //memory array index init. to 0
+
+    //memory allocate size for memory array - must free
+    array = (char**)malloc(sizeof(char*));  //allocate space for 20 commands
+
+    //till end of file
+    while(!feof(fp)) {
+        if (fgets(input, STR_SIZE, fp) != NULL) {    //read input
+            array[index] = (char*)malloc(sizeof(char) * STR_SIZE); //allocate memory per index
+
+            strcpy(array[index], input);    //copy
+            printf("%d\n", index);
+            printf("%s\n", array[index]);
+
+            index++;
+
+            //expand array if size meets parameters
+            //if(index % STR_SIZE == 0 && index != 0)
+            add_command(&array, index);
+        }
+        else
+            break;
+
     }
 
-    //display array
-    for(i=0; i<4; i++)
-        for(j=0; j<3; j++)
-            printf("array[%d][%d]=%d\n",i,j,array[i][j]);
 
-    // and a new column
-    add_column(array,4,3);
-
-    // now display the array again
-    for(i=0; i<4; i++)
-        for(j=0; j<4; j++)
-            printf("array[%d][%d]=%d\n",i,j,array[i][j]);
-
+    printf("%d\n", index);
     //now deallocate it
-    for(i=0; i<4; i++)
-        free((void*)array[i]);
-    free((void*)array);
+    for(int i = 0; i < index; i++)
+        free((void*)array[i]);      //free array indexes
+    free((void*)array);        //free memory array
 
     POP_TRACE();
     return;
 }//end make_extend_array
 
-void PRINT_NODE(CommandNode *head);
-void extend_row_array(char **array, int rows, int new_size);
-bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE);
+
 // ----------------------------------------------
 // function main
 
-#define STR_SIZE 20
 int main(int argc, char **argv) {
     // error-handling, if more than 2 arguments then print the error message.
     if (argc == 1 || argc > 2) {
@@ -237,7 +241,6 @@ int main(int argc, char **argv) {
     PUSH_TRACE("main");
 
     // validate the file pointer and error-handling, if file pointer points to nothing then file does not exist.
-    FILE *fp;
     fp = fopen(argv[1], "r");
     if (fp == NULL) {
         fprintf(stderr, "Error: %s does not exist.\n", argv[1]);
@@ -245,33 +248,12 @@ int main(int argc, char **argv) {
     }
 
     //redirect output
-    output = open("memtrace.out", O_WRONLY | O_CREAT | O_APPEND, 0664);
-    dup2(output, 1);
-
-
-    int ROW_SIZE = 10;
-    // This code block handles the file and store each line into ** string.
-    char **newString = (char **)malloc(sizeof(char *) * ROW_SIZE);
-    char input[20];
-    int count_lines = 0;
-    int array_size = 0;
-    int i;
-    for (i=0; i < ROW_SIZE; i++) {
-        newString[i] = (char *)malloc(sizeof(char) * STR_SIZE);
-        if (fgets(input, STR_SIZE, fp) != NULL) {
-            count_lines += 1;
-            // HUGE RED FLAG!!!
-            if (array_is_full(newString[i], array_size, ROW_SIZE)) {
-                extend_row_array(newString, ROW_SIZE, ROW_SIZE * 2);
-                ROW_SIZE *= 2;
-            }
-            strcpy(newString[i], input);
-            array_size += 1;
-        }
-    }
+    //output = open("memtrace.out", O_WRONLY | O_CREAT | O_APPEND, 0664);
+    //dup2(output, 1);
 
 
 
+    /*
     //free(input);
     // Create the head of the Linked list.
     int index = 0;
@@ -282,57 +264,32 @@ int main(int argc, char **argv) {
 
     // Store each command into a linked list node.
     for (i = 0; i < count_lines - 1; i++) {
-        commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
-        CreateCommandNode(commands_list[index], newString[index], index, NULL);
-        InsertCommandAfter(commands_list[index - 1], commands_list[index]);
+	commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
+	CreateCommandNode(commands_list[index], newString[index], index, NULL);
+	InsertCommandAfter(commands_list[index - 1], commands_list[index]);
     }
 
-    PRINT_NODE(head);
+    */
 
-    //make_extend_array();
+
     PRINT_TRACE();
+
+    make_extend_array();
+
+    //PRINT_NODES(head);
+
     POP_TRACE();
-    free(newString);
-    close(output);
+    //close(output);
     return(0);
 }// end main
 
-void PRINT_NODE(CommandNode *head) {
-    PUSH_TRACE("print_node");
-    CommandNode *temp = head;
+//recursive function - print linked list
+void PRINT_NODES(CommandNode *head) {
+    PUSH_TRACE("print_node");       //push to trace stack
+
+    CommandNode *temp = head;       //traverse linkd list
     while (temp != NULL) {
         printf("Node index: %d, function ID: %s\n", temp->index, temp->command);
         temp = GetNextCommand(temp);
     }
 }
-
-// Extend the rows of the array.
-void extend_row_array(char **array, int rows, int columns) {
-    PUSH_TRACE("extend_row_array");
-    int new_size = rows * 2;
-    size_t i;
-    //char **tmp = realloc(array, sizeof(char*) * (rows + (new_size)));
-    /*
-    if (tmp) {
-	array = tmp;
-	for (i=0; i < new_size; i++) {
-	    array[rows + i] = malloc(sizeof(char *)[rows + i] * columns);
-	}
-    } */
-    for (i=0; i < rows; i++) {
-        array[i]  = realloc(array[i], sizeof(char*) * new_size);
-    }
-}
-
-// Check the array to see whether if its full.
-bool array_is_full(char *array, int array_size, int INITIAL_ROW_SIZE) {
-    PUSH_TRACE("array_is_full");
-    size_t n = array_size;
-    if (n > INITIAL_ROW_SIZE)
-        return true;
-
-    return false;
-}
-
-
-
