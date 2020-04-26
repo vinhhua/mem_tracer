@@ -227,7 +227,7 @@ void make_extend_array() {
 }//end make_extend_array
 
 void PRINT_NODE(CommandNode *head);
-void extend_row_array(char **array, int rows, int new_size);
+void extend_row_array(char **array, int rows);
 // ----------------------------------------------
 // function main
 
@@ -266,12 +266,13 @@ int main(int argc, char **argv) {
         if (fgets(input, STR_SIZE, fp) != NULL) 
             count_lines += 1;
        
-	if (count_lines == ROW_SIZE)   // row is full, needs to resize the row of array.
-	    extend_row_array(newString, ROW_SIZE, ROW_SIZE * 2);
-	    
+	if (count_lines == ROW_SIZE) {   // row is full, needs to resize the row of array.
+	    newString = (char **)realloc(newString, sizeof(char *) * (ROW_SIZE * 2));
+	    ROW_SIZE *= 2;
+	}
+   
         strcpy(newString[i], input);
         array_size += 1;
-        
     }
 
     // Create the head of the Linked list.
@@ -282,16 +283,17 @@ int main(int argc, char **argv) {
     CommandNode *head = commands_list[0];
 
     // Store each command into a linked list node.
-    for (i = 0; i < count_lines - 1; i++) {
+    for (i = 1; i < count_lines - 1; i++) {
         commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
         CreateCommandNode(commands_list[index], newString[index], index, NULL);
         InsertCommandAfter(commands_list[index - 1], commands_list[index]);
     }
-
+    
+    // print all the commands from linked list.
     PRINT_NODE(head);
     
     // free all the pointers
-    for (i=0; i < count_lines - 1; i++) {
+    for (i=0; i < count_lines; i++) {
 	free((void *)newString[i]);
     }
     free((void *)newString);
@@ -313,16 +315,12 @@ void PRINT_NODE(CommandNode *head) {
     POP_TRACE();
 }
 
+
 // Extend the rows of the array.
-void extend_row_array(char **array, int rows, int columns) {
+/*
+void extend_row_array(char **array, int rows) {
     PUSH_TRACE("extend_row_array");
-    int new_size = rows * 2;
-    size_t i;
-    
-    for (i=0; i < rows; i++) {
-        array[i]  = realloc(array[i], sizeof(char*) * new_size);
-    }
-    POP_TRACE();
-}
+    array = (char **)realloc(array, sizeof(char *) * (rows * 2));
+}*/
 
 
