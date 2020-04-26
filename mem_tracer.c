@@ -26,6 +26,10 @@ static TRACE_NODE* TRACE_TOP = NULL;       // ptr to the top of the stack
 
 
 FILE* fp;
+<<<<<<< Updated upstream
+=======
+int ind;
+>>>>>>> Stashed changes
 //static int output;              //file output "memtrace"
 
 /* --------------------------------*/
@@ -170,6 +174,7 @@ void FREE(void* p,char* file,int line)
 // -----------------------------------------
 // function add_command will add an extra command to a char**.
 // This function is intended to demonstrate how memory usage tracing of realloc is done
+<<<<<<< Updated upstream
 void add_command(char*** array, int ind)
 {
     PUSH_TRACE("add_command");
@@ -177,6 +182,14 @@ void add_command(char*** array, int ind)
     //*array = realloc(*array, sizeof(char*) * (STR_SIZE + ind));
     *array = realloc(*array, sizeof(char*) * (ind+1));
     //20 + 20 / 20 + 40 / 20 + 60
+=======
+void add_command(char*** array, int currentSize)
+{
+    PUSH_TRACE("add_command");
+
+    *array = realloc(*array, sizeof(char*) * currentSize);
+    //*array = realloc(*array, sizeof(char*) * (ind+1));  //reallocate memory
+>>>>>>> Stashed changes
     POP_TRACE();    //pop
     return;
 }// end add_column
@@ -193,6 +206,7 @@ void make_extend_array() {
     char input[STR_SIZE];     //array input
     int index = 0;       //memory array index init. to 0
 
+<<<<<<< Updated upstream
     //memory allocate size for memory array - must free
     array = (char**)malloc(sizeof(char*));  //allocate space for 20 commands
 
@@ -215,6 +229,39 @@ void make_extend_array() {
             break;
 
     }
+=======
+    int totalSize = 0;      //accumulation of memory
+    int currentSize = 10;   //default 10
+
+    //memory allocate size for memory array - must free
+    //8 * ...
+    array = (char**)malloc(sizeof(char*) * currentSize);  //allocate space for 20 commands
+    //array = (char**)malloc(sizeof(char*));  //allocate space for 1
+    //till end of file
+    while(!feof(fp)) {
+        if (fgets(input, STR_SIZE, fp) != NULL) {    //read input
+
+            //get totalSize atm
+            totalSize += strlen(input);
+            //expand array if size hits limits (8 bytes per ptr)
+            if(totalSize >= (currentSize * 8)) {
+                currentSize *= 2;
+                add_command(&array, currentSize);     //pass to add_command
+            }
+
+            array[index] = (char*)malloc(strlen(input)); //allocate memory per index
+
+            strcpy(array[index], input);    //copy index over
+            //printf("%ld\n", sizeof(array));
+            index++;
+        }
+        else
+            break;
+
+    }
+
+    //*&ind = index;      //assign global ind var to hold index value
+>>>>>>> Stashed changes
 
 
     printf("%d\n", index);
@@ -256,7 +303,6 @@ int main(int argc, char **argv) {
     /*
     //free(input);
     // Create the head of the Linked list.
-    int index = 0;
     CommandNode *commands_list[count_lines]; // supposedly 6 atm
     commands_list[index] = (CommandNode *)malloc(sizeof(CommandNode));    // memory allocated for first index
     CreateCommandNode(commands_list[index], newString[index], 0, NULL);  // Create the node with head as thisnode, cmd[node_index] which is cmd[0], node_index of first index, count_lines as 5, and NULL.
@@ -293,3 +339,7 @@ void PRINT_NODES(CommandNode *head) {
         temp = GetNextCommand(temp);
     }
 }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
