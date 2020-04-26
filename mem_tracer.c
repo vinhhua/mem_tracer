@@ -7,7 +7,7 @@
 #include "CommandNode.h"
 #include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
-//*TO DO:
+/*TO DO:
 store commands into array - DONE
         store those commands inside array into Linked List - DONE
         put those node into the stack - DONE, should push function's name into stack instead of command's node.
