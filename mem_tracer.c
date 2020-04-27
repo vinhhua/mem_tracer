@@ -7,13 +7,13 @@
 #include "CommandNode.h"
 #include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
-/*TO DO:
-  store commands into array - DONE
-  store those commands inside array into Linked List - DONE
-  put those node into the stack - DONE, should push function's name into stack instead of command's node.
-  PRINT TRACE, WRITE INTO FILES, RE SIZE ARRAY - figuring out how to write out to file effectively.
-  more to come  */
-
+/*TO DO TMR: 4/26
+	FIX THE EXTEND ARRAY/ EXTEND ROW ARRAY - DONEZO
+	FREE POINTERS WHEN NOT USED - DONEZO
+	FIX ALL THE BUGS  - YES, MAYBE, IDK
+	WORK ON JAZZ ASSIGNMENTS
+	CRY
+*/
 // TRACE_NODE_STRUCT is a linked list of
 // pointers to function identifiers
 // TRACE_TOP is the head of the list is the top of the stack
@@ -23,11 +23,7 @@ struct TRACE_NODE_STRUCT {
 };
 typedef struct TRACE_NODE_STRUCT TRACE_NODE;
 static TRACE_NODE* TRACE_TOP = NULL;       // ptr to the top of the stack
-
-
-FILE* fp;
-int ind;
-//static int output;              //file output "memtrace"
+static int output;              //file output "memtrace"
 
 /* --------------------------------*/
 /* function PUSH_TRACE */
@@ -124,10 +120,12 @@ void* REALLOC(void* p,int t,char* file,int line)
 {
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
+    PUSH_TRACE("realloc");
     char *test;
     test = PRINT_TRACE();
     printf("file=\"%s/%s\",line=%d,function=\"%s\",segment reallocated to address %p to a new size %d\n", PATH, file, line, test, p, t);
     p = realloc(p,t);
+    POP_TRACE();
     return p;
 }
 
@@ -139,12 +137,14 @@ void* REALLOC(void* p,int t,char* file,int line)
 // Information about the function F should be printed by printing the stack (use PRINT_TRACE)
 void* MALLOC(int t,char* file,int line)
 {
+    PUSH_TRACE("malloc");
     void* p;
     p = malloc(t);
     char *test = PRINT_TRACE();
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
     printf("file=\"%s/%s\",line=%d,function=\"%s\",segment allocated to address %p to size %d\n", PATH, file, line, test, p, t);
+    POP_TRACE();
     return p;
 }
 
@@ -156,11 +156,13 @@ void* MALLOC(int t,char* file,int line)
 // Information about the function F should be printed by printing the stack (use PRINT_TRACE)
 void FREE(void* p,char* file,int line)
 {
+    PUSH_TRACE("free");
     free(p);
     char *test = PRINT_TRACE();
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
     printf("file=\"%s/%s\",line=%d,function=\"%s\",segment deallocated at the address %p\n", PATH, file, line, test, p);
+    POP_TRACE();
 }
 
 #define realloc(a,b) REALLOC(a,b,__FILE__,__LINE__)
@@ -169,15 +171,18 @@ void FREE(void* p,char* file,int line)
 
 
 // -----------------------------------------
-// function add_command will add an extra command to a char**.
+// function add_column will add an extra column to a 2d array of ints.
 // This function is intended to demonstrate how memory usage tracing of realloc is done
-void add_command(char*** array, int currentSize)
+void add_column(int** array,int rows,int columns)
 {
-    PUSH_TRACE("add_command");
+    PUSH_TRACE("add_column");
+    int i;
 
-    *array = realloc(*array, sizeof(char*) * currentSize);
-    //*array = realloc(*array, sizeof(char*) * (ind+1));  //reallocate memory
-    POP_TRACE();    //pop
+    for(i=0; i<rows; i++) {
+        array[i]=(int*) realloc(array[i],sizeof(int)*(columns+1));
+        array[i][columns]=10*i+columns;
+    }
+    POP_TRACE();
     return;
 }// end add_column
 
@@ -187,56 +192,44 @@ void add_command(char*** array, int currentSize)
 // Example of how the memory trace is done
 // This function is intended to demonstrate how memory usage tracing of malloc and free is done
 void make_extend_array() {
-    PUSH_TRACE("make_extend_array");    //push trace
+    PUSH_TRACE("make_extend_array");
+    int i, j;
+    int **array;
 
-    char **array;       //memory array
-    char input[STR_SIZE];     //array input
-    int index = 0;       //memory array index init. to 0
-
-    int totalSize = 0;      //accumulation of memory
-    int currentSize = 10;   //default 10
-
-    //memory allocate size for memory array - must free
-    //8 * ...
-    array = (char**)malloc(sizeof(char*) * currentSize);  //allocate space for 20 commands
-    //array = (char**)malloc(sizeof(char*));  //allocate space for 1
-    //till end of file
-    while(!feof(fp)) {
-        if (fgets(input, STR_SIZE, fp) != NULL) {    //read input
-
-            //get totalSize atm
-            totalSize += strlen(input);
-            //expand array if size hits limits (8 bytes per ptr)
-            if(totalSize >= (currentSize * 8)) {
-                currentSize *= 2;
-                add_command(&array, currentSize);     //pass to add_command
-            }
-
-            array[index] = (char*)malloc(strlen(input)); //allocate memory per index
-
-            strcpy(array[index], input);    //copy index over
-            //printf("%ld\n", sizeof(array));
-            index++;
-        }
-        else
-            break;
-
+    //make array
+    array = (int**) malloc(sizeof(int*)*4);  // 4 rows
+    for(i=0; i<4; i++) {
+        array[i]=(int*) malloc(sizeof(int)*3);  // 3 columns
+        for(j=0; j<3; j++)
+            array[i][j]=10*i+j;
     }
 
-    //*&ind = index;      //assign global ind var to hold index value
+    //display array
+    for(i=0; i<4; i++)
+        for(j=0; j<3; j++)
+            printf("array[%d][%d]=%d\n",i,j,array[i][j]);
+
+    // and a new column
+    add_column(array,4,3);
+
+    // now display the array again
+    for(i=0; i<4; i++)
+        for(j=0; j<4; j++)
+            printf("array[%d][%d]=%d\n",i,j,array[i][j]);
 
     //now deallocate it
-    for(int i = 0; i < index; i++)
-        free((void*)array[i]);      //free array indexes
-    free((void*)array);        //free memory array
+    for(i=0; i<4; i++)
+        free((void*)array[i]);
+    free((void*)array);
 
     POP_TRACE();
     return;
 }//end make_extend_array
 
-
 // ----------------------------------------------
 // function main
+void PRINT_NODE(CommandNode *head);
+#define STR_SIZE 20
 
 int main(int argc, char **argv) {
     // error-handling, if more than 2 arguments then print the error message.
@@ -248,6 +241,7 @@ int main(int argc, char **argv) {
     PUSH_TRACE("main");
 
     // validate the file pointer and error-handling, if file pointer points to nothing then file does not exist.
+    FILE *fp;
     fp = fopen(argv[1], "r");
     if (fp == NULL) {
         fprintf(stderr, "Error: %s does not exist.\n", argv[1]);
@@ -255,47 +249,77 @@ int main(int argc, char **argv) {
     }
 
     //redirect output
-    //output = open("memtrace.out", O_WRONLY | O_CREAT | O_APPEND, 0664);
-    //dup2(output, 1);
+    output = open("memtrace.out", O_WRONLY | O_CREAT | O_APPEND, 0664);
+    dup2(output, 1);
 
 
+    int ROW_SIZE = 10;
+    // This code block handles the file and store each line into ** string.
+    char **newString = (char **)malloc(sizeof(char *) * ROW_SIZE);
+    char input[20];
+    int count_lines = 0;
+    int i;
+    for (i=0; i < ROW_SIZE; i++) {
+        if (fgets(input, STR_SIZE, fp) != NULL)  {
+            count_lines++;
 
-    /*
-    //free(input);
+            if (count_lines == ROW_SIZE) {   			// row is full, needs to resize the row of array.
+                newString = (char **)realloc(newString, sizeof(char *) * (ROW_SIZE * 2));
+                ROW_SIZE *= 2;                       			   	      // update the ROW_SIZE
+            }
+            newString[i] = (char *)malloc(sizeof(char) * STR_SIZE);
+            strcpy(newString[i], input);
+        }
+        else
+            break;
+
+    }
+
     // Create the head of the Linked list.
+    int index = 0;
     CommandNode *commands_list[count_lines]; // supposedly 6 atm
     commands_list[index] = (CommandNode *)malloc(sizeof(CommandNode));    // memory allocated for first index
     CreateCommandNode(commands_list[index], newString[index], 0, NULL);  // Create the node with head as thisnode, cmd[node_index] which is cmd[0], node_index of first index, count_lines as 5, and NULL.
     CommandNode *head = commands_list[0];
 
     // Store each command into a linked list node.
-    for (i = 0; i < count_lines - 1; i++) {
-	commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
-	CreateCommandNode(commands_list[index], newString[index], index, NULL);
-	InsertCommandAfter(commands_list[index - 1], commands_list[index]);
+    for (i = 1; i < count_lines - 1; i++) {
+        commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
+        CreateCommandNode(commands_list[index], newString[index], index, NULL);
+        InsertCommandAfter(commands_list[index - 1], commands_list[index]);
     }
 
-    */
+    // free all the pointers
+    for (i=0; i < count_lines; i++)
+        free((void *)newString[i]);
+    free((void*)newString);
 
 
-    PRINT_TRACE();
+    // print all the commands from linked list.
+    PRINT_NODE(head);
 
-    make_extend_array();
+    // free all the nodes from Linked list
+    CommandNode *current = head;
+    while (current != NULL) {
+        free((void*)current);
+        current = GetNextCommand(current);
+    }
+    head = NULL;
+    // free all the commands from LL
 
-    //PRINT_NODES(head);
+    close(output);  // close the output file descriptor
+    POP_TRACE();    // pop everything off the stack.
+    PRINT_TRACE();  // print all the commands stored in linekd list
+    return 0;
+}
 
+// Function to print all the Linked list nodes recursively.
+void PRINT_NODE(CommandNode *head) {
+    PUSH_TRACE("print_node");
+    if (head == NULL)
+        return;
+
+    PRINT_NODE(GetNextCommand(head));
+    printf("Node index: %d, function ID: %s\n", head->index, head->command);
     POP_TRACE();
-    //close(output);
-    return(0);
-}// end main
-
-//recursive function - print linked list
-void PRINT_NODES(CommandNode *head) {
-    PUSH_TRACE("print_node");       //push to trace stack
-
-    CommandNode *temp = head;       //traverse linkd list
-    while (temp != NULL) {
-        printf("Node index: %d, function ID: %s\n", temp->index, temp->command);
-        temp = GetNextCommand(temp);
-    }
 }
