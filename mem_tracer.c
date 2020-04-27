@@ -157,11 +157,11 @@ void* MALLOC(int t,char* file,int line)
 void FREE(void* p,char* file,int line)
 {  
     PUSH_TRACE("free");
-    free(p);
     char *test = PRINT_TRACE();
     /*PRINT STATEMENT FOR DEBUG PURPOSES FOR NOW
       TO DO: WRITE THE OUTPUT INTO A FILE FOR TRACING PURPOSES */
     printf("file=\"%s/%s\",line=%d,function=\"%s\",segment deallocated at the address %p\n", PATH, file, line, test, p);
+    free(p);
     POP_TRACE();
 }
 
@@ -229,6 +229,7 @@ void make_extend_array() {
 // ----------------------------------------------
 // function main
 void PRINT_NODE(CommandNode *head);
+void clear_nodes(CommandNode *head);
 #define STR_SIZE 20
 
 int main(int argc, char **argv) {
@@ -290,12 +291,7 @@ int main(int argc, char **argv) {
     PRINT_NODE(head);
     
     // free all the nodes from Linked list
-    CommandNode *current = head;
-    while (current != NULL) {
-	free(current);
-	current = GetNextCommand(current);
-    }
-    head = NULL;
+    clear_nodes(head);
 
     // free all the pointers
     for (i=0; i < count_lines; i++)
@@ -321,4 +317,12 @@ void PRINT_NODE(CommandNode *head) {
     POP_TRACE();
 }
 
-
+void clear_nodes(CommandNode *head) {
+    PUSH_TRACE("clear_nodes");
+    CommandNode *current = head;
+    while (current != NULL) {
+	free(current);
+	current = GetNextCommand(current);
+    }
+    head = NULL;
+}
