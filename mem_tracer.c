@@ -7,13 +7,7 @@
 #include "CommandNode.h"
 #include <stdbool.h>
 #define PATH "/home/cs149/Desktop/CS149/Assignment4"
-/*TO DO TMR: 4/26
-	FIX THE EXTEND ARRAY/ EXTEND ROW ARRAY - DONEZO
-	FREE POINTERS WHEN NOT USED - DONEZO
-	FIX ALL THE BUGS  - YES, MAYBE, IDK
-	WORK ON JAZZ ASSIGNMENTS 
-	CRY
-*/
+
 // TRACE_NODE_STRUCT is a linked list of
 // pointers to function identifiers
 // TRACE_TOP is the head of the list is the top of the stack
@@ -229,7 +223,6 @@ void make_extend_array() {
 // ----------------------------------------------
 // function main
 void PRINT_NODE(CommandNode *head);
-void clear_nodes(CommandNode *head);
 #define STR_SIZE 20
 
 int main(int argc, char **argv) {
@@ -272,12 +265,19 @@ int main(int argc, char **argv) {
    
         strcpy(newString[i], input);
     }
+    
+    // manually freeing and shrink down the array so it doesnt leak any memory.
+    int remaining = ROW_SIZE - count_lines;
+    for (i=0; i < remaining; i++) {
+	free((void *)newString[count_lines + i]);
+    }
+
 
     // Create the head of the Linked list.
     int index = 0;
-    CommandNode *commands_list[count_lines]; // supposedly 6 atm
+    CommandNode *commands_list[count_lines]; 
     commands_list[index] = (CommandNode *)malloc(sizeof(CommandNode));    // memory allocated for first index
-    CreateCommandNode(commands_list[index], newString[index], 0, NULL);  // Create the node with head as thisnode, cmd[node_index] which is cmd[0], node_index of first index, count_lines as 5, and NULL.
+    CreateCommandNode(commands_list[index], newString[index], 0, NULL); 
     CommandNode *head = commands_list[0];
 
     // Store each command into a linked list node.
@@ -291,18 +291,23 @@ int main(int argc, char **argv) {
     PRINT_NODE(head);
     
     // free all the nodes from Linked list
-    clear_nodes(head);
-
+    CommandNode *current = head;
+    while (current != NULL) {
+	free(current);
+	current = current->nextCommandPtr;
+    }
+    head = NULL;
+    
     // free all the pointers
     for (i=0; i < count_lines; i++)
 	free((void *)newString[i]);
     free((void *)newString);
 
     // free all the commands from LL
-
+    fclose(fp);
     close(output);  // close the output file descriptor
-    POP_TRACE();    // pop everything off the stack.
     PRINT_TRACE();  // print all the commands stored in linekd list
+    POP_TRACE();    // pop everything off the stack.
     return 0;
 }
 
@@ -315,14 +320,4 @@ void PRINT_NODE(CommandNode *head) {
     PRINT_NODE(GetNextCommand(head));
     printf("Node index: %d, function ID: %s\n", head->index, head->command);
     POP_TRACE();
-}
-
-void clear_nodes(CommandNode *head) {
-    PUSH_TRACE("clear_nodes");
-    CommandNode *current = head;
-    while (current != NULL) {
-	free(current);
-	current = GetNextCommand(current);
-    }
-    head = NULL;
 }
