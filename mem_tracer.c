@@ -281,7 +281,7 @@ int main(int argc, char **argv) {
     CommandNode *head = commands_list[0];
 
     // Store each command into a linked list node.
-    for (i = 1; i < count_lines - 1; i++) {
+    for (i = 1; i < count_lines; i++) {
         commands_list[++index] = (CommandNode *)malloc(sizeof(CommandNode));
         CreateCommandNode(commands_list[index], newString[index], index, NULL);
         InsertCommandAfter(commands_list[index - 1], commands_list[index]);
